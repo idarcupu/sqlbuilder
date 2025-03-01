@@ -4,7 +4,6 @@ namespace Idaravel\SqlBuilder;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Idaravel\Sql;
 
 class Idarware {
 
