@@ -31,8 +31,11 @@ class Sql {
   }
 
   public function all($conditions = []){
-    if (!empty($conditions) && is_array($conditions)) {
-      foreach ($conditions as $column => $value) {
+    if(!empty($conditions) && is_array($conditions)){
+      foreach ($conditions as $column => $value){
+        if($this->alias){
+          $column = "{$this->alias}.{$column}";
+        }
         $this->query->where($column, $value);
       }
     }
@@ -40,8 +43,11 @@ class Sql {
   }
 
   public function one($conditions = []){
-    if (!empty($conditions) && is_array($conditions)) {
-      foreach ($conditions as $column => $value) {
+    if(!empty($conditions) && is_array($conditions)){
+      foreach ($conditions as $column => $value){
+        if($this->alias){
+          $column = "{$this->alias}.{$column}";
+        }
         $this->query->where($column, $value);
       }
     }
@@ -49,9 +55,14 @@ class Sql {
   }
 
   public function __call($method, $arguments){
+    if(in_array($method, ['all', 'one'])){
+      return call_user_func_array([$this, $method], $arguments);
+    }
+
     if(method_exists($this->query, $method)){
       return call_user_func_array([$this->query, $method], $arguments);
     }
+
     throw new \BadMethodCallException("Method {$method} does not exist.");
   }
 }
