@@ -30,49 +30,10 @@ class Sql {
     return $this;
   }
 
-  public function join($table, $firstColumn, $operator = null, $secondColumn = null, $type = 'inner'){
-    if($this->alias && is_string($firstColumn) && !str_contains($firstColumn, '.')){
-      $firstColumn = "{$this->alias}.{$firstColumn}";
-    }
-
-    if($operator !== null && $secondColumn !== null && is_string($secondColumn) && !str_contains($secondColumn, '.')){
-      $secondColumn = Str::snake($table) . ".{$secondColumn}";
-    }
-
-    $this->query->join(Str::snake($table), $firstColumn, $operator, $secondColumn, $type);
-    return $this;
-  }
-
-  public function where($column, $operator = null, $value = null){
-    if($this->alias && is_string($column) && !str_contains($column, '.')){
-      $column = "{$this->alias}.{$column}";
-    }
-
-    if(func_num_args() === 2){
-      $this->query->where($column, $operator);
-    } elseif(func_num_args() === 3){
-      $this->query->where($column, $operator, $value);
-    }
-    return $this;
-  }
-
-  public function select(...$columns){
-    $formattedColumns = [];
-    foreach ($columns as $column) {
-      if ($this->alias && is_string($column) && !str_contains($column, '.')) {
-        $formattedColumns[] = "{$this->alias}.{$column}";
-      } else {
-        $formattedColumns[] = $column;
-      }
-    }
-    $this->query->select($formattedColumns);
-    return $this;
-  }
-
   public function all($conditions = []){
     if (!empty($conditions) && is_array($conditions)) {
       foreach ($conditions as $column => $value) {
-        $this->where($column, $value);
+        $this->query->where($column, $value);
       }
     }
     return $this->query->get();
@@ -81,9 +42,16 @@ class Sql {
   public function one($conditions = []){
     if (!empty($conditions) && is_array($conditions)) {
       foreach ($conditions as $column => $value) {
-        $this->where($column, $value);
+        $this->query->where($column, $value);
       }
     }
     return $this->query->first();
+  }
+
+  public function __call($method, $arguments){
+    if(method_exists($this->query, $method)){
+      return call_user_func_array([$this->query, $method], $arguments);
+    }
+    throw new \BadMethodCallException("Method {$method} does not exist.");
   }
 }
